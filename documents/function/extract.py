@@ -42,10 +42,10 @@ def extract_text(pdf_path):
                                          dedupFunc=deduplication_algo, windowsSize=windowSize, top=numOfKeywords,
                                          features=None)
     keywords = kw_extractor.extract_keywords(text)
-    resultText = 'Mots Clés : '
+    resultText = ''
     for kw, v in keywords:
         if len(kw) > 4:
-            resultText += ' ' + kw
+            resultText += kw + ','
             print("Keyphrase: ", kw, ": score", v)
             temp = {"keyphrase": str(kw), "score": v}
             dictList.append(temp)

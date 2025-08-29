@@ -20,8 +20,14 @@ class DocumentView(GenericViewSet):
     serializer_class = DocumentSerializer
 
     # GET /documents/ → Get all
-    def list(self, request):
+    def list(self, request, *args, **kwargs):
         documents = self.get_queryset()
+
+        # Check if "search" is provided in query params
+        search_query = request.query_params.get("search", None)
+        if search_query:
+            documents = documents.filter(data__icontains=search_query)
+
         serializer = self.get_serializer(documents, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
