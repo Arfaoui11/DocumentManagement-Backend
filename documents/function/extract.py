@@ -3,8 +3,11 @@ import io
 import traceback
 import simplejson as json
 import numpy as np
+import pdfplumber
 import yake
 from DocumentTemplate import File
+import pytesseract
+from pdf2image import convert_from_path
 import pdfminer
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.image import ImageWriter
@@ -18,7 +21,7 @@ def extract_text(pdf_path):
     pdfFile = pdf_path['file']
     result = ''
     pdf = np.asarray(bytearray(pdfFile.read()), dtype="uint8")
-    text, textData = extract_text_by_page(pdf)
+    text, textData = extract_text_by_page(pdf,pdfFile)
 
 
     dictList = []
@@ -38,9 +41,14 @@ def extract_text(pdf_path):
     windowSize = 1
     numOfKeywords = 25
 
-    kw_extractor = yake.KeywordExtractor(lan=language, n=max_ngram_size, dedupLim=deduplication_threshold,
-                                         dedupFunc=deduplication_algo, windowsSize=windowSize, top=numOfKeywords,
-                                         features=None)
+    kw_extractor = yake.KeywordExtractor(
+        lan=language,
+        n=max_ngram_size,
+        dedupLim=deduplication_threshold,
+        dedupFunc=deduplication_algo,
+        windowSize=windowSize,
+        top=numOfKeywords
+    )
     keywords = kw_extractor.extract_keywords(text)
     resultText = ''
     for kw, v in keywords:
@@ -69,7 +77,30 @@ def file_to_byte_array(file: File):
     byte_encode = data_encode.tobytes()
     return byte_encode
 
-def extract_text_by_page(pdf_path):
+
+def extract_text_pdf(pdf_path):
+    text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            text += page.extract_text() or ""  # extract_text() may return None if empty
+    return text
+
+
+
+def extract_text_pdf_ocr(pdf_path):
+    text = ""
+    pages = convert_from_path(pdf_path)
+    for page in pages:
+        text += pytesseract.image_to_string(page)
+    return text
+def extract_text_hybrid(pdf_path):
+    text = extract_text_pdf(pdf_path)  # try text extraction
+    if not text.strip():               # if empty, fallback to OCR
+        text = extract_text_pdf_ocr(pdf_path)
+    return text
+
+
+def extract_text_by_page(pdf_path,pdf):
     reserve_pdf_on_memory = io.BytesIO(pdf_path)
     reader = PyPDF2.PdfReader(reserve_pdf_on_memory)
     # Scan image from PDF object
@@ -139,8 +170,10 @@ def extract_text_by_page(pdf_path):
     except ValueError:
         traceback.print_exc()
 
-    for pageNum in range(0, len(reader.pages)):
-        pageObj = reader.pages[pageNum]
-        # text += pageObj.extractText()
-        text += pageObj.extract_text()
+    text = extract_text_hybrid(pdf)
+
+    # for pageNum in range(0, len(reader.pages)):
+    #     pageObj = reader.pages[pageNum]
+    #     # text += pageObj.extractText()
+    #     text += pageObj.extract_text()
     return text, textData
