@@ -1,3 +1,5 @@
+import os
+
 from django.shortcuts import render
 
 from django.core.files.base import ContentFile
@@ -7,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 
+from documents.function.extract import extract_text
 from documents.models.document import Document
 from documents.serializers.document_serializer import DocumentSerializer
 
@@ -36,7 +39,17 @@ class DocumentView(GenericViewSet):
 
     # POST /documents/ → Add document
     def create(self, request):
-        serializer = self.get_serializer(data=request.data)
+        file = request.FILES['file']
+        filename = file.name  # "report.pdf"
+        name, ext = os.path.splitext(filename)
+        if ext == '.pdf':
+            textData, dictList, titre, bytePdf = extract_text(request.data)
+            serializer = DocumentSerializer(
+                data={'file': ContentFile(bytePdf, name=filename), 'data': textData, 'titre': titre,
+                      'keywords': dictList}, partial=True)
+        else:
+            serializer = self.get_serializer(data=request.data)
+
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)

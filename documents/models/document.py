@@ -1,4 +1,5 @@
 import mimetypes
+import os
 
 from django.db import models
 
@@ -8,6 +9,8 @@ class Document(models.Model):
     file_name = models.CharField(max_length=100)
     creation_date = models.DateTimeField(auto_now_add=True)
     data = models.TextField(null=True, blank=True)
+    keywords = models.TextField(null=True, blank=True)
+    titre = models.TextField(null=True, blank=True)
     file = models.FileField(upload_to='files/', null=True, blank=True)
     file_size = models.CharField(max_length=50, blank=True)  # auto set
     content_type = models.CharField(max_length=100, blank=True)  # auto set
@@ -19,10 +22,17 @@ class Document(models.Model):
             size_bytes = self.file.size
             self.file_size = self._human_readable_size(size_bytes)
 
+            # Auto set file name without extension
+            base_name = os.path.basename(self.file.name)  # e.g. "report.pdf"
+            name_without_ext, _ = os.path.splitext(base_name)  # → "report"
+
+            self.file_name = name_without_ext
+
             # Auto set content type (MIME type)
             mime_type, _ = mimetypes.guess_type(self.file.name)
             if mime_type:
                 self.content_type = mime_type
+
 
         super().save(*args, **kwargs)
 
