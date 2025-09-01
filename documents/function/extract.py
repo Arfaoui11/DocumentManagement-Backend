@@ -157,10 +157,6 @@ def extract_text_by_page(pdf_path,pdf):
                 else:
                     pass
 
-            try:
-                wap = text_pos[0]
-            except:
-                pass
             i = 1
             for key in text_pos:
                 if len(key) > 4:
