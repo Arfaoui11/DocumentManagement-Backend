@@ -95,8 +95,7 @@ def extract_text_pdf_ocr(pdf_path):
     return text
 def extract_text_hybrid(pdf_path):
     text = extract_text_pdf(pdf_path)  # try text extraction
-    if not text.strip():               # if empty, fallback to OCR
-        text = extract_text_pdf_ocr(pdf_path)
+    text = text + " " + extract_text_pdf_ocr(pdf_path) # try text extraction with ocr
     return text
 
 
