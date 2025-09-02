@@ -101,7 +101,8 @@ def get_file_path_from_uploaded(uploaded_file):
 
 def extract_text_hybrid(pdf_path):
     text = extract_text_pdf(pdf_path)  # try text extraction
-    text = text + " " + extract_text_pdf_ocr(pdf_path)
+    if not text.strip():
+        text = extract_text_pdf_ocr(pdf_path)
     return text
 
 
@@ -156,8 +157,8 @@ def extract_text_by_page(pdf, pdfFile):
 
             i = 1
             for key in text_pos:
-                if len(key) > 4:
-                    textData += " " + i.__str__() + " " + key + "\n"
+                if len(key) > 4 and len(key) > 40:
+                    textData += key + ","
                     i += 1
 
     except ValueError:
