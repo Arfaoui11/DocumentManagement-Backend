@@ -1,9 +1,7 @@
 import os
 
-from django.shortcuts import render
 
 from django.core.files.base import ContentFile
-from django.db import transaction
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework import status
