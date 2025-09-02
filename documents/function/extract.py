@@ -31,7 +31,6 @@ def extract_text(pdf_path):
     # Specify whether to use the top-k weighted keywords or not (optional, defaults to False)
     language = get_language(text)
 
-    print(language)
     max_ngram_size = 5
     deduplication_threshold = 0.9
     deduplication_algo = 'seqm'
@@ -96,8 +95,6 @@ def extract_text_pdf_ocr(pdf):
     pages = convert_from_path(tmp_path)
     for page in pages:
         text += pytesseract.image_to_string(page)
-    print("extract_text_pdf_ocr")
-    print(text)
     return text
 
 
@@ -112,10 +109,8 @@ def get_file_path_from_uploaded(uploaded_file):
 
 def extract_text_hybrid(pdf_path):
     text = extract_text_pdf(pdf_path)  # try text extraction
-    print("extract_text_pdf")
-    print(text)
-    if not text:
-        text = extract_text_pdf_ocr(pdf_path)
+    if len(text) < 200:
+        text = text + " " + extract_text_pdf_ocr(pdf_path)
     return text
 
 
