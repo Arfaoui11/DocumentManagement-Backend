@@ -24,7 +24,7 @@ def extract_text(pdf_path):
 
     pdf = np.asarray(bytearray(pdfFile.read()), dtype="uint8")
 
-    text, textData = extract_text_by_page(pdf, pdfFile)
+    text, titre = extract_text_by_page(pdf, pdfFile)
 
     dictList = []
 
@@ -53,14 +53,12 @@ def extract_text(pdf_path):
             resultText += kw + ','
             temp = {"keyphrase": str(kw), "score": v}
             dictList.append(temp)
-    result = '\n ' + textData + " \n "
-    resultText = resultText + " \n "
 
     dictList = json.dumps(dictList)
 
     bytePdf = file_to_byte_array(pdf)
 
-    return resultText, dictList, result, bytePdf
+    return resultText, dictList, titre, bytePdf
 
 
 def file_to_byte_array(file: File):
@@ -108,7 +106,7 @@ def extract_text_hybrid(pdf_path):
 
 def extract_text_by_page(pdf, pdfFile):
     # Scan image from PDF object
-    textData = ''
+    titre = ''
 
     try:
         # Open the PDF file in binary mode
@@ -157,8 +155,8 @@ def extract_text_by_page(pdf, pdfFile):
 
             i = 1
             for key in text_pos:
-                if len(key) > 4 and len(key) > 40:
-                    textData += key + ","
+                if len(key) > 4 and len(key) > 20:
+                    titre += key + ","
                     i += 1
 
     except ValueError:
@@ -166,4 +164,4 @@ def extract_text_by_page(pdf, pdfFile):
 
     text = extract_text_hybrid(pdfFile)
 
-    return text, textData
+    return text, titre
