@@ -10,7 +10,6 @@ import pytesseract
 from pdf2image import convert_from_path
 import pdfminer
 from pdfminer.converter import PDFPageAggregator
-from pdfminer.image import ImageWriter
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams, LTChar, LTFigure, LTTextContainer, LTTextBox, LTImage
@@ -19,27 +18,22 @@ from pdfminer.layout import LAParams, LTChar, LTFigure, LTTextContainer, LTTextB
 def extract_text(pdf_path):
     global byteImg
     pdfFile = pdf_path['file']
-    result = ''
+
     pdf = np.asarray(bytearray(pdfFile.read()), dtype="uint8")
     text, textData = extract_text_by_page(pdf,pdfFile)
 
 
     dictList = []
-    # Specify the language for keyword extraction (optional, defaults to "en" for English)
-    language = "en"
-
-    # Specify the maximum number of keywords to extract (optional, defaults to 20)
-    max_keywords = 20
 
     # Specify whether to use the top-k weighted keywords or not (optional, defaults to False)
     deduplication = False
 
-    language = "en"
-    max_ngram_size = 3
+    language = "fr"
+    max_ngram_size = 5
     deduplication_threshold = 0.9
     deduplication_algo = 'seqm'
     windowSize = 1
-    numOfKeywords = 25
+    numOfKeywords = 50
 
     kw_extractor = yake.KeywordExtractor(
         lan=language,
@@ -63,9 +57,7 @@ def extract_text(pdf_path):
     dictList = json.dumps(dictList)
 
     bytePdf = file_to_byte_array(pdf)
-    # delete_file()
 
-    # return resultText, dictList, textData, bytePdf, byteImg
     return resultText, dictList, result, bytePdf
 
 def file_to_byte_array(file: File):
@@ -86,7 +78,6 @@ def extract_text_pdf(pdf_path):
     return text
 
 
-
 def extract_text_pdf_ocr(pdf_path):
     text = ""
     pages = convert_from_path(pdf_path)
@@ -95,8 +86,7 @@ def extract_text_pdf_ocr(pdf_path):
     return text
 def extract_text_hybrid(pdf_path):
     text = extract_text_pdf(pdf_path)  # try text extraction
-    if not text.strip():               # if empty, fallback to OCR
-        text = extract_text_pdf_ocr(pdf_path)
+    text = extract_text_pdf_ocr(pdf_path)
     return text
 
 
@@ -104,13 +94,11 @@ def extract_text_by_page(pdf_path,pdf):
     reserve_pdf_on_memory = io.BytesIO(pdf_path)
     reader = PyPDF2.PdfReader(reserve_pdf_on_memory)
     # Scan image from PDF object
-    Extract_Text = []
     textData = ''
-    text = ''
+
     password = ""
     fake_file_handle = io.StringIO()
-    # Get the total number of pages in the PDF
-    num_pages = len(reader.pages)
+
     try:
         # Open the PDF file in binary mode
         with io.BytesIO(pdf_path) as fh:
@@ -125,9 +113,9 @@ def extract_text_by_page(pdf_path,pdf):
             for page in PDFPage.get_pages(fh, caching=True, check_extractable=False, password=password):
 
                 page_interpreter.process_page(page)
-                text = fake_file_handle.getvalue()
+
                 layout = device.get_result()
-                # save_images_from_page(layout)
+
 
                 for lobj in layout:
                     if isinstance(lobj, LTTextContainer) or isinstance(lobj, LTTextBox) or isinstance(lobj,
@@ -146,7 +134,7 @@ def extract_text_by_page(pdf_path,pdf):
                     # if it's a container, recurse
                     elif isinstance(lobj, LTFigure):
                         pass
-            # digitised_images[0].close()
+
             # extract elements below y0=781 und above y0=57
             text_pos = []
             maxFontpos = 780
@@ -168,8 +156,4 @@ def extract_text_by_page(pdf_path,pdf):
 
     text = extract_text_hybrid(pdf)
 
-    # for pageNum in range(0, len(reader.pages)):
-    #     pageObj = reader.pages[pageNum]
-    #     # text += pageObj.extractText()
-    #     text += pageObj.extract_text()
     return text, textData
