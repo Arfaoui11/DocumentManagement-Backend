@@ -46,7 +46,7 @@ class DocumentView(GenericViewSet):
     # POST /documents/ → Add document
     def create(self, request):
         file = request.FILES['file']
-        filename = file.name  # "report.pdf"
+        filename = file.name
         name, ext = os.path.splitext(filename)
         if ext == '.pdf':
             textData, dictList, titre, bytePdf = extract_text(request.data)
