@@ -17,8 +17,8 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams, LTChar, LTFigure, LTTextContainer, LTTextBox, LTImage
 from langdetect import detect
 
-def extract_text(pdf_path):
 
+def extract_text(pdf_path):
     global byteImg
     pdfFile = pdf_path['file']
 
@@ -61,7 +61,6 @@ def extract_text(pdf_path):
     return resultText, dictList, titre, bytePdf
 
 
-
 def get_language(text: str) -> str:
     try:
         language = detect(text)
@@ -71,6 +70,7 @@ def get_language(text: str) -> str:
             return "en"  # default
     except:
         return "en"  # default if detection fails
+
 
 def file_to_byte_array(file: File):
     """
