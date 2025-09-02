@@ -29,7 +29,8 @@ def extract_text(pdf_path):
     dictList = []
 
     # Specify whether to use the top-k weighted keywords or not (optional, defaults to False)
-    language = detect(text)
+    language = get_language(text)
+
     print(language)
     max_ngram_size = 5
     deduplication_threshold = 0.9
@@ -60,6 +61,17 @@ def extract_text(pdf_path):
     return resultText, dictList, titre, bytePdf
 
 
+
+def get_language(text: str) -> str:
+    try:
+        language = detect(text)
+        if language in ["fr", "en"]:
+            return language
+        else:
+            return "en"  # default
+    except:
+        return "en"  # default if detection fails
+
 def file_to_byte_array(file: File):
     """
     Converts an image into a byte array
@@ -84,6 +96,8 @@ def extract_text_pdf_ocr(pdf):
     pages = convert_from_path(tmp_path)
     for page in pages:
         text += pytesseract.image_to_string(page)
+    print("extract_text_pdf_ocr")
+    print(text)
     return text
 
 
@@ -98,7 +112,9 @@ def get_file_path_from_uploaded(uploaded_file):
 
 def extract_text_hybrid(pdf_path):
     text = extract_text_pdf(pdf_path)  # try text extraction
-    if not text.strip():
+    print("extract_text_pdf")
+    print(text)
+    if not text:
         text = extract_text_pdf_ocr(pdf_path)
     return text
 
