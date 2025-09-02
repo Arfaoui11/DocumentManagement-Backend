@@ -155,7 +155,7 @@ def extract_text_by_page(pdf, pdfFile):
 
             i = 1
             for key in text_pos:
-                if len(key) > 4 and len(key) > 20:
+                if 4 < len(key) < 80:
                     titre += key + ","
                     i += 1
 
