@@ -15,7 +15,7 @@ from pdfminer.converter import PDFPageAggregator
 from pdfminer.pdfpage import PDFPage
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.layout import LAParams, LTChar, LTFigure, LTTextContainer, LTTextBox, LTImage
-
+from langdetect import detect
 
 def extract_text(pdf_path):
 
@@ -29,9 +29,8 @@ def extract_text(pdf_path):
     dictList = []
 
     # Specify whether to use the top-k weighted keywords or not (optional, defaults to False)
-    deduplication = False
-
-    language = "fr"
+    language = detect(text)
+    print(language)
     max_ngram_size = 5
     deduplication_threshold = 0.9
     deduplication_algo = 'seqm'
