@@ -1,3 +1,5 @@
+import tempfile
+
 import PyPDF2
 import io
 import traceback
@@ -16,12 +18,13 @@ from pdfminer.layout import LAParams, LTChar, LTFigure, LTTextContainer, LTTextB
 
 
 def extract_text(pdf_path):
+
     global byteImg
     pdfFile = pdf_path['file']
 
     pdf = np.asarray(bytearray(pdfFile.read()), dtype="uint8")
-    text, textData = extract_text_by_page(pdf,pdfFile)
 
+    text, textData = extract_text_by_page(pdf, pdfFile)
 
     dictList = []
 
@@ -60,6 +63,7 @@ def extract_text(pdf_path):
 
     return resultText, dictList, result, bytePdf
 
+
 def file_to_byte_array(file: File):
     """
     Converts an image into a byte array
@@ -78,30 +82,37 @@ def extract_text_pdf(pdf_path):
     return text
 
 
-def extract_text_pdf_ocr(pdf_path):
+def extract_text_pdf_ocr(pdf):
     text = ""
-    pages = convert_from_path(pdf_path)
+    tmp_path = get_file_path_from_uploaded(pdf)
+    pages = convert_from_path(tmp_path)
     for page in pages:
         text += pytesseract.image_to_string(page)
     return text
+
+
+def get_file_path_from_uploaded(uploaded_file):
+    # Create a temp file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        for chunk in uploaded_file.chunks():
+            tmp.write(chunk)
+        tmp_path = tmp.name  # path to the temp file
+    return tmp_path
+
+
 def extract_text_hybrid(pdf_path):
     text = extract_text_pdf(pdf_path)  # try text extraction
-    text = extract_text_pdf_ocr(pdf_path)
+    text = text + " " + extract_text_pdf_ocr(pdf_path)
     return text
 
 
-def extract_text_by_page(pdf_path,pdf):
-    reserve_pdf_on_memory = io.BytesIO(pdf_path)
-    reader = PyPDF2.PdfReader(reserve_pdf_on_memory)
+def extract_text_by_page(pdf, pdfFile):
     # Scan image from PDF object
     textData = ''
 
-    password = ""
-    fake_file_handle = io.StringIO()
-
     try:
         # Open the PDF file in binary mode
-        with io.BytesIO(pdf_path) as fh:
+        with io.BytesIO(pdf) as fh:
 
             # Create a PDF parser object
             resource_manager = PDFResourceManager()
@@ -110,12 +121,11 @@ def extract_text_by_page(pdf_path,pdf):
             page_interpreter = PDFPageInterpreter(resource_manager, device)
             positions = []
             raw_text = []
-            for page in PDFPage.get_pages(fh, caching=True, check_extractable=False, password=password):
+            for page in PDFPage.get_pages(fh, caching=True, check_extractable=False, password=""):
 
                 page_interpreter.process_page(page)
 
                 layout = device.get_result()
-
 
                 for lobj in layout:
                     if isinstance(lobj, LTTextContainer) or isinstance(lobj, LTTextBox) or isinstance(lobj,
@@ -138,7 +148,7 @@ def extract_text_by_page(pdf_path,pdf):
             # extract elements below y0=781 und above y0=57
             text_pos = []
             maxFontpos = 780
-            minFontpos = 300
+            minFontpos = 500
             for coord, word in raw_text:
                 if coord <= maxFontpos and coord >= minFontpos:
                     text_pos.append(word)
@@ -154,6 +164,6 @@ def extract_text_by_page(pdf_path,pdf):
     except ValueError:
         traceback.print_exc()
 
-    text = extract_text_hybrid(pdf)
+    text = extract_text_hybrid(pdfFile)
 
     return text, textData
