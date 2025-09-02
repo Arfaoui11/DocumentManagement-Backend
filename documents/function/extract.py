@@ -51,7 +51,6 @@ def extract_text(pdf_path):
     for kw, v in keywords:
         if len(kw) > 4:
             resultText += kw + ','
-            print("Keyphrase: ", kw, ": score", v)
             temp = {"keyphrase": str(kw), "score": v}
             dictList.append(temp)
     result = '\n ' + textData + " \n "
